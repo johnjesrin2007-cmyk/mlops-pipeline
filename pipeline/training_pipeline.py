@@ -1,3 +1,8 @@
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from prefect import flow
 from src.preprocess import preprocess_data
 from src.train import train_model
