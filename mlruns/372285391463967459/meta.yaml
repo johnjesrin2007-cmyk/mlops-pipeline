@@ -1,0 +1,6 @@
+artifact_location: ./mlruns/372285391463967459
+creation_time: 1770558627801
+experiment_id: '372285391463967459'
+last_update_time: 1770558627801
+lifecycle_stage: active
+name: house_price_experiment

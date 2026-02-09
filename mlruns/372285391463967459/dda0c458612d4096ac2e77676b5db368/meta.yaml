@@ -1,0 +1,14 @@
+artifact_location: ./mlruns/372285391463967459/dda0c458612d4096ac2e77676b5db368/artifacts
+end_time: 1770558641818
+entry_point_name: ''
+experiment_id: '372285391463967459'
+lifecycle_stage: active
+run_id: dda0c458612d4096ac2e77676b5db368
+run_name: unruly-loon-84
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1770558628497
+status: 3
+tags: []
+user_id: KiTE
