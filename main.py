@@ -29,31 +29,36 @@ class HouseData(BaseModel):
 def load_model():
     global model
     try:
-        # We start searching from the root 'mlruns' folder in the Docker container
-        search_root = "/app/mlruns"
+        # 1. Let's see EXACTLY where we are and what is around us
+        cwd = os.getcwd()
+        logger.info(f"📍 Current Working Directory: {cwd}")
+        logger.info(f"📂 Folders in {cwd}: {os.listdir(cwd)}")
+
+        # 2. Check if mlruns exists at all
+        search_root = os.path.join(cwd, "mlruns")
+        if not os.path.exists(search_root):
+            logger.error(f"❌ CRITICAL: The folder 'mlruns' does not exist in {cwd}")
+            return
+
+        # 3. Walk and find MLmodel
         found_model_path = None
-
-        logger.info(f"🔎 Searching for model artifacts in {search_root}...")
-
-        # Walk through all directories to find where the MLmodel file lives
         for root, dirs, files in os.walk(search_root):
             if "MLmodel" in files:
-                # We found the folder containing the model metadata
                 found_model_path = root
                 break
 
         if found_model_path:
             logger.info(f"🚀 Found model at: {found_model_path}")
             model = mlflow.pyfunc.load_model(found_model_path)
-            logger.info("✅ SUCCESS: Model loaded and ready for predictions!")
+            logger.info("✅ SUCCESS: Model loaded!")
         else:
-            logger.error("❌ CRITICAL: Could not find 'MLmodel' file anywhere in /app/mlruns")
-            # Log what we DID find to help debug
-            for root, dirs, files in os.walk(search_root):
-                 logger.info(f"Directory: {root} | Contains: {dirs} {files}")
+            logger.error(f"❌ Could not find 'MLmodel' file inside {search_root}")
+            # This will show us the structure in the logs so we can fix the path
+            for root, dirs, files in os.walk(cwd):
+                 logger.info(f"Found Path: {root}")
 
     except Exception as e:
-        logger.error(f"❌ Error during model startup: {str(e)}")
+        logger.error(f"❌ Load Error: {str(e)}")
 
 # 4. API Endpoints
 @app.get("/")
