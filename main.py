@@ -28,37 +28,23 @@ class HouseData(BaseModel):
 @app.on_event("startup")
 def load_model():
     global model
+    # Check if we are on Render (which uses the PORT env var)
+    if os.getenv("RENDER"):
+        logger.info("Running on Render - checking MLflow connectivity...")
+    
     try:
-        # 1. Let's see EXACTLY where we are and what is around us
-        cwd = os.getcwd()
-        logger.info(f"📍 Current Working Directory: {cwd}")
-        logger.info(f"📂 Folders in {cwd}: {os.listdir(cwd)}")
-
-        # 2. Check if mlruns exists at all
-        search_root = os.path.join(cwd, "mlruns")
-        if not os.path.exists(search_root):
-            logger.error(f"❌ CRITICAL: The folder 'mlruns' does not exist in {cwd}")
-            return
-
-        # 3. Walk and find MLmodel
-        found_model_path = None
-        for root, dirs, files in os.walk(search_root):
-            if "MLmodel" in files:
-                found_model_path = root
-                break
-
-        if found_model_path:
-            logger.info(f"🚀 Found model at: {found_model_path}")
-            model = mlflow.pyfunc.load_model(found_model_path)
-            logger.info("✅ SUCCESS: Model loaded!")
-        else:
-            logger.error(f"❌ Could not find 'MLmodel' file inside {search_root}")
-            # This will show us the structure in the logs so we can fix the path
-            for root, dirs, files in os.walk(cwd):
-                 logger.info(f"Found Path: {root}")
-
+        model_name = "HousePriceModel"
+        stage = "Production"
+        model_uri = f"models:/{model_name}/{stage}"
+        
+        # This is where it usually freezes if the URI is wrong
+        model = mlflow.pyfunc.load_model(model_uri)
+        logger.info("✅ Success!")
     except Exception as e:
-        logger.error(f"❌ Load Error: {str(e)}")
+        logger.error(f"❌ Startup Error: {e}")
+        # We don't raise the error, so the server stays alive
+        # allowing you to at least see the health page/logs.
+        model = None
 
 # 4. API Endpoints
 @app.get("/")
