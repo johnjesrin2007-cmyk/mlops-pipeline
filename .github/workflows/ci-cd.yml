@@ -1,4 +1,4 @@
-nname: CI Pipeline
+name: CI Pipeline
 
 on:
   push:
@@ -21,10 +21,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run training pipeline (validation only)
+      - name: Run training pipeline
         run: |
           export PYTHONPATH=$PYTHONPATH:$(pwd)
-          python pipeline.py
+          python pipeline/training_pipeline.py
+
+      - name: Verify model exists
+        run: |
+          ls -R
+          test -f model/model.pkl
 
   docker:
     runs-on: ubuntu-latest

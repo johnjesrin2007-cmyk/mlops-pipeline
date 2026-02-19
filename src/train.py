@@ -1,28 +1,46 @@
+import os
 import mlflow
 import mlflow.sklearn
+import joblib
 from sklearn.linear_model import LinearRegression
-from prefect import task
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score
 
-@task
+
 def train_model(X, y):
-    # Always point MLflow to local file store
-    mlflow.set_tracking_uri("file:./mlruns")
 
-    # Optional but clean: set experiment
-    mlflow.set_experiment("house_price_experiment")
+    # Split data
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
 
+    # Start MLflow run
     with mlflow.start_run():
+
+        # Initialize model
         model = LinearRegression()
-        model.fit(X, y)
 
-        # Log parameters & metrics
-        mlflow.log_param("model_type", "LinearRegression")
-        mlflow.log_metric("r2_score", model.score(X, y))
+        # Train
+        model.fit(X_train, y_train)
 
-        # 🔴 IMPORTANT: log model as an artifact (NO registry)
-        mlflow.sklearn.log_model(
-            sk_model=model,
-            artifact_path="model"
-        )
+        # Predict
+        y_pred = model.predict(X_test)
 
-    return model
+        # Evaluate
+        r2 = r2_score(y_test, y_pred)
+
+        # Log metric
+        mlflow.log_metric("r2_score", r2)
+
+        # Log model to MLflow
+        mlflow.sklearn.log_model(model, "model")
+
+        print(f"✅ R2 Score: {r2}")
+
+    # ------------------------------
+    # 🔥 SAVE MODEL FOR PRODUCTION
+    # ------------------------------
+    os.makedirs("model", exist_ok=True)
+    joblib.dump(model, "model/model.pkl")
+
+    print("✅ Model saved to model/model.pkl")
